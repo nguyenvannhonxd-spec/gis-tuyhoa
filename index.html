@@ -697,8 +697,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
   --danger:#c0392b;
 }
 *{box-sizing:border-box;}
-html,body{margin:0;padding:0;height:100%;font-family:'Inter',sans-serif;color:var(--ink);background:var(--paper);}
-#app{display:flex;flex-direction:column;height:100vh;}
+html,body{margin:0;padding:0;height:100%;font-family:'Inter',sans-serif;color:var(--ink);background:var(--paper);overscroll-behavior:none;}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+.mobile-menu-btn{display:none;}
 
 /* ---------- HEADER ---------- */
 header{
@@ -854,81 +855,99 @@ footer{
 ::-webkit-scrollbar{width:7px;height:7px;}
 ::-webkit-scrollbar-thumb{background:#c7d3ce;border-radius:4px;}
 
-/* ---------- MOBILE / TOUCH PLATFORM ---------- */
-.menu-toggle{display:none;font-size:16px;padding:7px 11px;}
-.sidebar-mobile-head{display:none;}
-#sidebarBackdrop{display:none;}
+/* ============================================================
+   GIAO DIEN DI DONG (MOBILE) — man hinh <= 768px
+   ============================================================ */
+.mobile-overlay{
+  display:none;position:fixed;inset:0;background:rgba(8,20,18,.5);z-index:1300;
+}
+.mobile-overlay.show{display:block;}
 
-@media (max-width:860px){
-  html,body{-webkit-tap-highlight-color:transparent;}
-  header{padding:8px 10px;gap:8px;flex-wrap:wrap;}
-  .menu-toggle{display:inline-flex;align-items:center;justify-content:center;order:0;}
-  .brand{order:1;gap:8px;}
-  .brand-mark{width:32px;height:32px;font-size:13px;}
-  .brand-text h1{font-size:13.5px;line-height:1.25;}
-  .brand-text p{display:none;}
-  .header-search{order:3;flex-basis:100%;margin-top:6px;}
-  .header-search input{font-size:16px;padding:10px 12px;} /* 16px = no iOS zoom-on-focus */
-  .header-actions{order:2;margin-left:auto;gap:6px;}
-  .header-actions .hbtn{padding:7px 9px;font-size:0;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;}
-  .header-actions .hbtn::before{font-size:15px;}
-  #btnLegal::before{content:"⚖️";}
-  #btnRefImg::before{content:"🖼️";}
-  #btnImportHeader::before{content:"＋";}
-  #searchResults{max-width:100%;left:0;right:0;}
+@media (max-width: 768px){
+  /* Header gon lai, cho phep xuong dong */
+  header{
+    flex-wrap:wrap;
+    padding:8px 10px;
+    gap:8px;
+    position:relative;
+  }
+  .brand-mark{width:32px;height:32px;font-size:12px;}
+  .brand-text h1{font-size:13px;letter-spacing:0;}
+  .brand-text p{display:none;} /* an dong phu de tiet kiem cho */
+  .header-search{order:3;width:100%;flex:1 1 100%;}
+  .header-search input{max-width:none;font-size:13px;padding:8px 12px;}
+  #searchResults{max-width:none;}
+  .header-actions{display:none;} /* chuyen cac nut nay vao trong menu/sidebar tren mobile */
+  .mobile-menu-btn{
+    display:flex;align-items:center;justify-content:center;
+    width:38px;height:38px;border-radius:6px;flex-shrink:0;
+    background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+    color:#fff;font-size:18px;cursor:pointer;
+  }
 
-  /* Off-canvas sidebar */
-  #main{position:relative;overflow:hidden;}
+  /* Sidebar bien thanh drawer truot tu ben trai, an mac dinh */
+  #main{position:relative;}
   #sidebar{
-    position:fixed;top:0;left:0;bottom:0;z-index:2500;
-    width:86vw;max-width:340px;
+    position:fixed;top:0;left:0;bottom:0;
+    width:85vw;max-width:340px;
+    z-index:1400;
     transform:translateX(-100%);
     transition:transform .25s ease;
-    box-shadow:2px 0 18px rgba(0,0,0,.25);
+    box-shadow:4px 0 18px rgba(0,0,0,.25);
   }
   #sidebar.open{transform:translateX(0);}
-  .sidebar-mobile-head{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:12px 14px;background:var(--navy);color:#fff;flex-shrink:0;
-    font-family:'Roboto Condensed',sans-serif;font-weight:700;font-size:14px;
-  }
-  .sidebar-mobile-head button{background:none;border:none;color:#fff;font-size:18px;padding:2px 8px;cursor:pointer;}
-  #sidebarBackdrop{
-    display:none;position:fixed;inset:0;background:rgba(8,20,18,.5);z-index:2400;
-  }
-  #sidebarBackdrop.open{display:block;}
-  .tabpanel{padding:12px;}
-  .layer-row{padding:10px 6px;} /* larger tap target */
-  .layer-row input[type=checkbox]{width:19px;height:19px;}
 
-  /* Map floating controls: shrink + reflow for small screens */
-  .basemap-switch{top:auto;bottom:10px;left:10px;right:auto;font-size:11px;}
+  #sidebarCloseBtn{
+    display:block!important;width:100%;text-align:right;padding:10px 14px;font-size:13px;
+    color:var(--navy);font-weight:600;cursor:pointer;border:none;border-bottom:1px solid var(--line);
+    background:#f6f8f7;
+  }
+
+  #mapwrap{width:100%;}
+
+  /* Cac control noi tren ban do: thu gon, xep lai cho vua man hinh hep */
+  .basemap-switch{top:8px;right:8px;font-size:11px;}
   .basemap-switch button{padding:6px 8px;font-size:11px;}
-  .north-arrow{display:none;}
+  .north-arrow{top:8px;left:8px;padding:4px 7px;}
+  .north-arrow svg{width:16px;height:19px;}
   .measure-toolbar{
-    top:auto;bottom:56px;left:10px;right:10px;
-    flex-wrap:wrap;justify-content:flex-start;
+    top:auto;bottom:64px;left:8px;right:8px;
+    flex-wrap:wrap;gap:5px;
   }
-  .measure-toolbar button{padding:8px 10px;font-size:11.5px;}
-  .measure-result{top:auto;bottom:100px;left:10px;right:10px;text-align:center;}
-  .coord-readout{display:none;}
-  .attrib-note{
-    left:10px;right:10px;max-width:none;bottom:auto;top:10px;
-    text-align:center;font-size:9.5px;padding:4px 8px;
-  }
+  .measure-toolbar button{padding:7px 9px;font-size:11px;flex:1 1 auto;}
+  .measure-result{top:auto;bottom:110px;left:8px;right:8px;font-size:11.5px;}
   .legend-box{
-    left:10px;right:10px;bottom:auto;top:44px;max-width:none;
+    bottom:auto;top:56px;right:8px;left:8px;max-width:none;
+    max-height:110px;overflow-y:auto;font-size:11px;
+  }
+  .coord-readout{
+    left:8px;right:8px;bottom:8px;font-size:10px;padding:5px 9px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .attrib-note{display:none;} /* an tren mobile, khong du cho */
+
+  footer{
+    font-size:9px;padding:4px 8px;flex-direction:column;gap:2px;text-align:center;
   }
 
-  /* Leaflet zoom control: move so it doesn't collide with toolbars */
-  .leaflet-top.leaflet-left{top:96px;}
+  /* Popup gon hon tren man hinh hep */
+  .leaflet-popup-content{font-size:12.5px;max-width:70vw;}
+  .popup-table td{padding:2px 4px;}
 
-  /* Modal full-screen on mobile */
-  .modal-bg{padding:0;}
-  .modal{width:100%;max-width:100%;height:100%;max-height:100%;border-radius:0;padding:16px;}
+  /* Modal chiem gan het man hinh, de doc hon */
+  .modal{width:94%;padding:16px;max-height:85vh;}
+  .modal h2{font-size:16px;}
 
-  footer{flex-direction:column;gap:2px;text-align:center;padding:6px 10px;}
-  footer span:last-child{display:none;}
+  /* Tabs sidebar to hon de bam ngon tay */
+  .tab{padding:13px 4px;font-size:12px;}
+  .layer-row{padding:10px 6px;}
+  .layer-row input[type=checkbox]{width:19px;height:19px;}
+}
+
+/* Man hinh rat nho (dien thoai doc, <380px) */
+@media (max-width: 380px){
+  .measure-toolbar button{font-size:10px;padding:6px 7px;}
+  .brand-text h1{font-size:11.5px;}
 }
 </style>
 </head>
@@ -936,7 +955,6 @@ footer{
 <div id="app">
 
   <header>
-    <button class="hbtn menu-toggle" id="btnMenuToggle" aria-label="Mở menu lớp bản đồ">☰</button>
     <div class="brand">
       <div class="brand-mark">TH</div>
       <div class="brand-text">
@@ -953,15 +971,13 @@ footer{
       <button class="hbtn" id="btnRefImg">Ảnh tư liệu gốc</button>
       <button class="hbtn accent" id="btnImportHeader">+ Nhập dữ liệu</button>
     </div>
+    <button class="mobile-menu-btn" id="btnMobileMenu" aria-label="Menu bản đồ">☰</button>
   </header>
+  <div class="mobile-overlay" id="mobileOverlay"></div>
 
   <div id="main">
-    <div id="sidebarBackdrop"></div>
     <aside id="sidebar">
-      <div class="sidebar-mobile-head">
-        <span>Menu bản đồ</span>
-        <button id="btnSidebarClose" aria-label="Đóng menu">✕</button>
-      </div>
+      <button id="sidebarCloseBtn" style="display:none;">✕ Đóng menu</button>
       <div class="tabs">
         <div class="tab active" data-tab="layers">Lớp bản đồ</div>
         <div class="tab" data-tab="dashboard">Dashboard</div>
@@ -1251,6 +1267,10 @@ Object.keys(baseLayers).forEach((name,i)=>{
 });
 
 L.control.scale({metric:true, imperial:false, position:'bottomleft'}).addTo(map);
+
+// Dam bao ban do ve lai dung kich thuoc khi xoay man hinh / doi kich thuoc (quan trong tren dien thoai)
+window.addEventListener('resize', ()=>setTimeout(()=>map.invalidateSize(),200));
+window.addEventListener('orientationchange', ()=>setTimeout(()=>map.invalidateSize(),300));
 
 // điểm tham chiếu trung tâm phường (không phải ranh giới) — dữ liệu thực: căn cứ pháp lý đã trích dẫn
 const centerMarker = L.circleMarker(CENTER, {radius:7, color:'#e2703a', weight:2, fillColor:'#e2703a', fillOpacity:.85})
@@ -1583,32 +1603,39 @@ function updateDashboard(){
 updateDashboard();
 
 /* ---------------- Tabs ---------------- */
+/* ---------------- Menu di dong (hamburger) ---------------- */
+const sidebarEl = document.getElementById('sidebar');
+const mobileOverlay = document.getElementById('mobileOverlay');
+function openMobileSidebar(){
+  sidebarEl.classList.add('open');
+  mobileOverlay.classList.add('show');
+}
+function closeMobileSidebar(){
+  sidebarEl.classList.remove('open');
+  mobileOverlay.classList.remove('show');
+}
+document.getElementById('btnMobileMenu').addEventListener('click', openMobileSidebar);
+document.getElementById('sidebarCloseBtn').addEventListener('click', closeMobileSidebar);
+mobileOverlay.addEventListener('click', closeMobileSidebar);
+// tren mobile, cac nut Co so phap ly / Anh tu lieu / Nhap du lieu chuyen vao sidebar (an tren header)
+if (window.innerWidth <= 768) {
+  const mobileActions = document.createElement('div');
+  mobileActions.style.cssText = 'padding:12px 14px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--line);';
+  mobileActions.innerHTML = `
+    <button class="hbtn" style="background:var(--navy);color:#fff;width:100%;" id="btnLegalMobile">Cơ sở pháp lý</button>
+    <button class="hbtn" style="background:var(--navy);color:#fff;width:100%;" id="btnRefImgMobile">Ảnh tư liệu gốc</button>`;
+  sidebarEl.insertBefore(mobileActions, sidebarEl.children[1]);
+  document.getElementById('btnLegalMobile').addEventListener('click', ()=>{closeMobileSidebar(); document.getElementById('modalLegal').style.display='flex';});
+  document.getElementById('btnRefImgMobile').addEventListener('click', ()=>{closeMobileSidebar(); document.getElementById('modalRefImg').style.display='flex';});
+}
+
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById('tab-'+tab.dataset.tab).classList.add('active');
-    if(window.matchMedia('(max-width:860px)').matches) closeMobileSidebar();
   });
-});
-
-/* ---------------- Mobile sidebar (off-canvas) ---------------- */
-const sidebarEl = document.getElementById('sidebar');
-const sidebarBackdrop = document.getElementById('sidebarBackdrop');
-function openMobileSidebar(){
-  sidebarEl.classList.add('open');
-  sidebarBackdrop.classList.add('open');
-}
-function closeMobileSidebar(){
-  sidebarEl.classList.remove('open');
-  sidebarBackdrop.classList.remove('open');
-}
-document.getElementById('btnMenuToggle').addEventListener('click', openMobileSidebar);
-document.getElementById('btnSidebarClose').addEventListener('click', closeMobileSidebar);
-sidebarBackdrop.addEventListener('click', closeMobileSidebar);
-document.getElementById('btnImportHeader').addEventListener('click', ()=>{
-  if(window.matchMedia('(max-width:860px)').matches) openMobileSidebar();
 });
 
 /* ---------------- Modals ---------------- */
