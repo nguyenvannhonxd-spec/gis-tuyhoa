@@ -799,6 +799,16 @@ header{
 .basemap-switch button:first-child{border-left:none;}
 .basemap-switch button.active{background:var(--navy);color:#fff;}
 
+.locate-btn{
+  position:absolute;z-index:900;background:var(--white);border:1px solid var(--line);
+  border-radius:50%;width:40px;height:40px;box-shadow:0 3px 10px rgba(0,0,0,.18);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;
+  top:64px;right:12px;color:var(--navy);transition:background .15s;
+}
+.locate-btn:hover{background:#f1f6f4;}
+.locate-btn.active{background:var(--coral);color:#fff;}
+.locate-btn.loading{opacity:.6;pointer-events:none;}
+
 .north-arrow{
   position:absolute;top:12px;left:12px;z-index:900;background:rgba(255,255,255,.92);
   border-radius:8px;padding:6px 10px;box-shadow:0 3px 10px rgba(0,0,0,.15);display:flex;flex-direction:column;align-items:center;
@@ -914,6 +924,7 @@ footer{
   /* Cac control noi tren ban do: thu gon, xep lai cho vua man hinh hep */
   .basemap-switch{top:8px;right:8px;font-size:11px;}
   .basemap-switch button{padding:6px 8px;font-size:11px;}
+  .locate-btn{top:46px;right:8px;width:34px;height:34px;font-size:16px;}
   .north-arrow{top:8px;left:8px;padding:4px 7px;}
   .north-arrow svg{width:16px;height:19px;}
   .measure-toolbar{
@@ -1030,6 +1041,7 @@ footer{
     <div id="mapwrap">
       <div id="map"></div>
       <div class="basemap-switch" id="basemapSwitch"></div>
+      <button class="locate-btn" id="locateBtn" title="Định vị vị trí của tôi" aria-label="Định vị vị trí của tôi">📍</button>
       <div class="north-arrow">
         <svg viewBox="0 0 24 28"><polygon points="12,0 18,16 12,12 6,16" fill="#0b3d3a"/><text x="12" y="26" font-size="10" text-anchor="middle" fill="#0b3d3a" font-family="Roboto Condensed">B</text></svg>
       </div>
@@ -1273,6 +1285,77 @@ Object.keys(baseLayers).forEach((name,i)=>{
 });
 
 L.control.scale({metric:true, imperial:false, position:'bottomleft'}).addTo(map);
+
+// ===== Định vị vị trí người dùng (GPS / trình duyệt) =====
+let myLocationMarker = null;
+let myLocationCircle = null;
+let myLocationWatchId = null;
+const locateBtn = document.getElementById('locateBtn');
+
+function clearMyLocation(){
+  if(myLocationMarker){ map.removeLayer(myLocationMarker); myLocationMarker = null; }
+  if(myLocationCircle){ map.removeLayer(myLocationCircle); myLocationCircle = null; }
+}
+
+function showMyLocation(lat, lng, accuracy){
+  const latlng = [lat, lng];
+  clearMyLocation();
+  myLocationCircle = L.circle(latlng, {
+    radius: accuracy || 30,
+    color: '#1a73e8', weight: 1, fillColor: '#1a73e8', fillOpacity: .15
+  }).addTo(map);
+  myLocationMarker = L.circleMarker(latlng, {
+    radius: 8, color: '#fff', weight: 3, fillColor: '#1a73e8', fillOpacity: 1
+  }).addTo(map);
+  myLocationMarker.bindPopup(
+    `<div class="popup-title">Vị trí của bạn</div>
+     <table class="popup-table">
+       <tr><td class="k">Toạ độ</td><td class="v">${lat.toFixed(6)}, ${lng.toFixed(6)}</td></tr>
+       <tr><td class="k">Độ chính xác</td><td class="v">±${Math.round(accuracy||0)} m</td></tr>
+     </table>`
+  );
+}
+
+function handleLocationError(err){
+  locateBtn.classList.remove('loading');
+  let msg = 'Không thể lấy vị trí của bạn.';
+  if(err && err.code === 1) msg = 'Bạn chưa cho phép truy cập vị trí. Vào cài đặt trình duyệt để bật quyền vị trí cho trang này.';
+  else if(err && err.code === 2) msg = 'Không xác định được vị trí (tín hiệu GPS/mạng yếu). Thử lại ở nơi thoáng hơn.';
+  else if(err && err.code === 3) msg = 'Yêu cầu định vị quá thời gian chờ. Thử lại nhé.';
+  alert(msg);
+}
+
+locateBtn.addEventListener('click', function(){
+  if(!('geolocation' in navigator)){
+    alert('Trình duyệt của bạn không hỗ trợ định vị.');
+    return;
+  }
+  // Nếu đang bật theo dõi rồi thì bấm lần nữa để tắt
+  if(myLocationWatchId !== null){
+    navigator.geolocation.clearWatch(myLocationWatchId);
+    myLocationWatchId = null;
+    locateBtn.classList.remove('active');
+    clearMyLocation();
+    return;
+  }
+  locateBtn.classList.add('loading');
+  navigator.geolocation.getCurrentPosition(function(pos){
+    locateBtn.classList.remove('loading');
+    locateBtn.classList.add('active');
+    const { latitude, longitude, accuracy } = pos.coords;
+    showMyLocation(latitude, longitude, accuracy);
+    map.setView([latitude, longitude], Math.max(map.getZoom(), 17));
+    myLocationMarker.openPopup();
+    // Theo dõi vị trí liên tục (cập nhật khi di chuyển)
+    myLocationWatchId = navigator.geolocation.watchPosition(function(p){
+      showMyLocation(p.coords.latitude, p.coords.longitude, p.coords.accuracy);
+    }, function(e){ /* im lặng khi watch lỗi, giữ vị trí lần cuối */ }, {
+      enableHighAccuracy: true, maximumAge: 5000, timeout: 15000
+    });
+  }, handleLocationError, {
+    enableHighAccuracy: true, timeout: 10000, maximumAge: 0
+  });
+});
 
 // Dam bao ban do ve lai dung kich thuoc khi xoay man hinh / doi kich thuoc (quan trong tren dien thoai)
 window.addEventListener('resize', ()=>setTimeout(()=>map.invalidateSize(),200));
